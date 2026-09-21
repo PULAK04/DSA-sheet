@@ -1,0 +1,13 @@
+import mongoose from 'mongoose';
+
+const subtopicSchema = new mongoose.Schema(
+  {
+    topicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic', required: true, index: true },
+    name: { type: String, required: true, trim: true }
+  },
+  { timestamps: true }
+);
+
+subtopicSchema.index({ topicId: 1, createdAt: 1 });
+
+export const Subtopic = mongoose.model('Subtopic', subtopicSchema);
