@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import {
   ChevronDown,
   ChevronRight,
@@ -13,8 +13,18 @@ import { useClickOutside } from '../hooks/useClickOutside.js';
 
 function countLabel(questions) {
   const total = questions.length;
-
   return `${total} question${total === 1 ? '' : 's'}`;
+}
+
+function getMenuPlacement(buttonElement, estimatedHeight = 180) {
+  const rect = buttonElement.getBoundingClientRect();
+
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+
+  return spaceBelow < estimatedHeight && spaceAbove > spaceBelow
+    ? 'up'
+    : 'down';
 }
 
 export default function TopicSection({
@@ -36,34 +46,51 @@ export default function TopicSection({
   const [open, setOpen] = useState(true);
   const [subtopicsOpen, setSubtopicsOpen] = useState({});
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPlacement, setMenuPlacement] = useState('down');
 
-  const closeTopicMenu = useCallback(
-    () => setMenuOpen(false),
-    []
-  );
+  const closeTopicMenu = useCallback(() => {
+    setMenuOpen(false);
+  }, []);
 
   const topicMenuRef = useClickOutside(
     menuOpen,
     closeTopicMenu
   );
 
-  const topicCount = useMemo(
-    () =>
-      countLabel(
-        topic.subtopics.flatMap(
-          (subtopic) => subtopic.questions
-        )
-      ),
-    [topic.subtopics]
-  );
+  const topicCount = useMemo(() => {
+    return countLabel(
+      topic.subtopics.flatMap(
+        (subtopic) => subtopic.questions
+      )
+    );
+  }, [topic.subtopics]);
+
+  const toggleTopicMenu = (event) => {
+    if (menuOpen) {
+      setMenuOpen(false);
+      return;
+    }
+
+    const placement = getMenuPlacement(
+      event.currentTarget,
+      110
+    );
+
+    setMenuPlacement(placement);
+    setMenuOpen(true);
+  };
 
   return (
     <section className="topic-section">
+      {/* ================= TOPIC HEADER ================= */}
+
       <div className="topic-header">
         <button
           type="button"
           className="chevron-button"
-          onClick={() => setOpen((value) => !value)}
+          onClick={() =>
+            setOpen((value) => !value)
+          }
           aria-label={
             open
               ? `Collapse ${topic.name}`
@@ -72,9 +99,15 @@ export default function TopicSection({
           aria-expanded={open}
         >
           {open ? (
-            <ChevronDown size={19} strokeWidth={2} />
+            <ChevronDown
+              size={19}
+              strokeWidth={2}
+            />
           ) : (
-            <ChevronRight size={19} strokeWidth={2} />
+            <ChevronRight
+              size={19}
+              strokeWidth={2}
+            />
           )}
         </button>
 
@@ -93,9 +126,7 @@ export default function TopicSection({
           <button
             type="button"
             className="icon-button"
-            onClick={() =>
-              setMenuOpen((value) => !value)
-            }
+            onClick={toggleTopicMenu}
             aria-label={`Actions for ${topic.name}`}
             aria-expanded={menuOpen}
           >
@@ -106,7 +137,13 @@ export default function TopicSection({
           </button>
 
           {menuOpen && (
-            <div className="action-menu">
+            <div
+              className={`action-menu ${
+                menuPlacement === 'up'
+                  ? 'menu-up'
+                  : 'menu-down'
+              }`}
+            >
               {canEdit && (
                 <button
                   type="button"
@@ -138,6 +175,8 @@ export default function TopicSection({
         </div>
       </div>
 
+      {/* ================= TOPIC BODY ================= */}
+
       {open && (
         <div className="topic-body">
           {topic.subtopics.map((subtopic) => {
@@ -152,10 +191,13 @@ export default function TopicSection({
                 isOpen={isOpen}
                 canEdit={canEdit}
                 onToggleOpen={() =>
-                  setSubtopicsOpen((previous) => ({
-                    ...previous,
-                    [subtopic._id]: !isOpen
-                  }))
+                  setSubtopicsOpen(
+                    (previous) => ({
+                      ...previous,
+                      [subtopic._id]:
+                        !isOpen
+                    })
+                  )
                 }
                 onAddQuestion={onAddQuestion}
                 onIncrementPriority={
@@ -170,12 +212,18 @@ export default function TopicSection({
                 onResetRevision={
                   onResetRevision
                 }
-                onEditSubtopic={onEditSubtopic}
+                onEditSubtopic={
+                  onEditSubtopic
+                }
                 onDeleteSubtopic={
                   onDeleteSubtopic
                 }
-                onEditQuestion={onEditQuestion}
-                onDeleteQuestion={onDeleteQuestion}
+                onEditQuestion={
+                  onEditQuestion
+                }
+                onDeleteQuestion={
+                  onDeleteQuestion
+                }
               />
             );
           })}
@@ -198,6 +246,10 @@ export default function TopicSection({
   );
 }
 
+/* =========================================================
+   SUBTOPIC
+   ========================================================= */
+
 function SubtopicBlock({
   subtopic,
   isOpen,
@@ -214,11 +266,12 @@ function SubtopicBlock({
   onDeleteQuestion
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPlacement, setMenuPlacement] =
+    useState('down');
 
-  const closeMenu = useCallback(
-    () => setMenuOpen(false),
-    []
-  );
+  const closeMenu = useCallback(() => {
+    setMenuOpen(false);
+  }, []);
 
   const menuRef = useClickOutside(
     menuOpen,
@@ -228,6 +281,21 @@ function SubtopicBlock({
   const count = countLabel(
     subtopic.questions
   );
+
+  const toggleMenu = (event) => {
+    if (menuOpen) {
+      setMenuOpen(false);
+      return;
+    }
+
+    const placement = getMenuPlacement(
+      event.currentTarget,
+      110
+    );
+
+    setMenuPlacement(placement);
+    setMenuOpen(true);
+  };
 
   return (
     <div className="subtopic-block">
@@ -269,9 +337,7 @@ function SubtopicBlock({
           <button
             type="button"
             className="icon-button"
-            onClick={() =>
-              setMenuOpen((value) => !value)
-            }
+            onClick={toggleMenu}
             aria-label={`Actions for ${subtopic.name}`}
             aria-expanded={menuOpen}
           >
@@ -282,13 +348,21 @@ function SubtopicBlock({
           </button>
 
           {menuOpen && (
-            <div className="action-menu">
+            <div
+              className={`action-menu ${
+                menuPlacement === 'up'
+                  ? 'menu-up'
+                  : 'menu-down'
+              }`}
+            >
               {canEdit && (
                 <button
                   type="button"
                   onClick={() => {
                     setMenuOpen(false);
-                    onEditSubtopic(subtopic);
+                    onEditSubtopic(
+                      subtopic
+                    );
                   }}
                 >
                   <Pencil size={15} />
@@ -316,6 +390,7 @@ function SubtopicBlock({
         </div>
       </div>
 
+      {/* No animation here */}
       {isOpen && (
         <div className="question-list">
           {subtopic.questions.map(
@@ -335,10 +410,14 @@ function SubtopicBlock({
                   )
                 }
                 onResetPriority={() =>
-                  onResetPriority(question)
+                  onResetPriority(
+                    question
+                  )
                 }
                 onResetRevision={() =>
-                  onResetRevision(question)
+                  onResetRevision(
+                    question
+                  )
                 }
                 onEdit={() =>
                   onEditQuestion(question)
