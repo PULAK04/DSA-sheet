@@ -25,7 +25,9 @@ app.use((error, _req, res, _next) => {
 
 connectDB(env.mongoUri)
   .then(() => {
-    app.listen(env.port, () => console.log(`Backend running on http://localhost:${env.port}`));
+   app.listen(env.port, '0.0.0.0', () => {
+  console.log(`Backend running on port ${env.port}`);
+});
   })
   .catch((error) => {
     console.error('Database connection failed:', error.message);

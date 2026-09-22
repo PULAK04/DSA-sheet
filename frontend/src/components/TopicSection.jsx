@@ -30,7 +30,7 @@ export default function TopicSection({ topic, canEdit, onAddSubtopic, onAddQuest
           {menuOpen && (
             <div className="action-menu">
               {canEdit && <button onClick={() => { setMenuOpen(false); onEditTopic(topic); }}><Pencil size={15} /> Rename</button>}
-{canEdit && <button className="danger-text" onClick={() => { setMenuOpen(false); onDeleteTopic(topic); }}><Trash2 size={15} /> Delete</button>}
+              {canEdit && <button className="danger-text" onClick={() => { setMenuOpen(false); onDeleteTopic(topic); }}><Trash2 size={15} /> Delete</button>}
             </div>
           )}
         </div>
