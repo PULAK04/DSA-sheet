@@ -43,7 +43,7 @@ export default function TopicSection({
   onEditQuestion,
   onDeleteQuestion
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [subtopicsOpen, setSubtopicsOpen] = useState({});
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPlacement, setMenuPlacement] = useState('down');
